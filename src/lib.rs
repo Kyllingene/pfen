@@ -36,8 +36,8 @@ pub enum PfenError {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Piece {
-    kind: PieceKind,
-    color: Color,
+    pub kind: PieceKind,
+    pub color: Color,
 }
 
 impl TryFrom<char> for Piece {
