@@ -122,10 +122,10 @@ pub enum Color {
     White,
 }
 
-impl std::ops::Neg for Color {
+impl std::ops::Not for Color {
     type Output = Self;
 
-    fn neg(self) -> Self::Output {
+    fn not(self) -> Self::Output {
         match self {
             Self::Black => Self::White,
             Self::White => Self::Black,
