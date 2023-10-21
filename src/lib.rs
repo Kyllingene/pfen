@@ -122,6 +122,17 @@ pub enum Color {
     White,
 }
 
+impl std::ops::Neg for Color {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        match self {
+            Self::Black => Self::White,
+            Self::White => Self::Black,
+        }
+    }
+}
+
 impl TryFrom<char> for Color {
     type Error = ();
 
