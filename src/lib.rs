@@ -304,7 +304,7 @@ pub fn parse(fen: &str) -> Result<Pfen, PfenError> {
                 len += num;
             } else {
                 let piece = ch.try_into().map_err(|_| PfenError::InvalidPiece(ch))?;
-                board.board[ri][len] = Some(piece);
+                board.board[7 - ri][len] = Some(piece);
 
                 len += 1;
             }

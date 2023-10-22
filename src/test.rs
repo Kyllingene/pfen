@@ -103,14 +103,14 @@ fn starting_position() {
         parse("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
         Ok(Pfen {
             board: make_board![
-                [ r n b q k b n r ],
-                [ p p p p p p p p ],
-                [ - - - - - - - - ],
-                [ - - - - - - - - ],
-                [ - - - - - - - - ],
-                [ - - - - - - - - ],
-                [ P P P P P P P P ],
                 [ R N B Q K B N R ],
+                [ P P P P P P P P ],
+                [ - - - - - - - - ],
+                [ - - - - - - - - ],
+                [ - - - - - - - - ],
+                [ - - - - - - - - ],
+                [ p p p p p p p p ],
+                [ r n b q k b n r ],
             ],
 
             turn: Color::White,
@@ -135,14 +135,14 @@ fn mid_game() {
         parse("rnb1kb1r/pp1ppp1p/8/P1p3N1/4n3/8/P1PPQPPP/RNB1KB1R b KQkq - 0 6"),
         Ok(Pfen {
             board: make_board![
-                [ r n b - k b - r ],
-                [ p p - p p p - p ],
-                [ - - - - - - - - ],
-                [ P - p - - - N - ],
-                [ - - - - n - - - ],
-                [ - - - - - - - - ],
-                [ P - P P Q P P P ],
                 [ R N B - K B - R ],
+                [ P - P P Q P P P ],
+                [ - - - - - - - - ],
+                [ - - - - n - - - ],
+                [ P - p - - - N - ],
+                [ - - - - - - - - ],
+                [ p p - p p p - p ],
+                [ r n b - k b - r ],
             ],
 
             turn: Color::Black,
