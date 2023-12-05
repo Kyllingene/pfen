@@ -6,27 +6,27 @@ use thiserror::Error;
 mod test;
 
 #[derive(Clone, Debug, PartialEq, Eq, Error, Hash)]
-pub enum PfenError {
+pub enum PfenError<'fen> {
     #[error("too few rows: {0}")]
-    TooFewRows(String),
+    TooFewRows(&'fen str),
     #[error("too many rows: {0}")]
-    TooManyRows(String),
+    TooManyRows(&'fen str),
     #[error("row is too long: `{0}`")]
-    RowTooLong(String),
+    RowTooLong(&'fen str),
     #[error("row is too short: `{0}`")]
-    RowTooShort(String),
+    RowTooShort(&'fen str),
     #[error("invalid piece: {0}")]
     InvalidPiece(char),
     #[error("invalid color: `{0}`")]
-    InvalidColor(String),
+    InvalidColor(&'fen str),
     #[error("invalid castling state: `{0}`")]
-    InvalidCastling(String),
+    InvalidCastling(&'fen str),
     #[error("invalid en passant state: `{0}`")]
-    InvalidEnPassant(String),
+    InvalidEnPassant(&'fen str),
     #[error("invalid halfmove: `{0}`")]
-    InvalidHalfmove(String),
+    InvalidHalfmove(&'fen str),
     #[error("invalid fullmove: `{0}`")]
-    InvalidFullmove(String),
+    InvalidFullmove(&'fen str),
 
     #[error("too few segments in fen string; expected 6, found {0}")]
     TooFewSegments(usize),
@@ -163,7 +163,7 @@ impl FromStr for Castling {
 
         if castling == "-" {
             return Ok(out);
-        } else if castling.len() > 4 || castling.len() == 0 {
+        } else if castling.len() > 4 || castling.is_empty() {
             return Err(());
         }
 
@@ -239,7 +239,9 @@ pub struct Pfen {
 pub fn parse(fen: &str) -> Result<Pfen, PfenError> {
     let mut board = Pfen::default();
 
-    let sections: Vec<_> = fen.split(" ").collect();
+    let sections: Vec<_> = fen.split(' ').collect();
+
+    #[allow(clippy::comparison_chain)]
     if sections.len() < 6 {
         return Err(PfenError::TooFewSegments(sections.len()));
     } else if sections.len() > 6 {
@@ -253,36 +255,35 @@ pub fn parse(fen: &str) -> Result<Pfen, PfenError> {
             .next()
             .unwrap()
             .try_into()
-            .map_err(|_| PfenError::InvalidColor(turn.to_string()))?;
+            .map_err(|_| PfenError::InvalidColor(turn))?;
     } else {
-        return Err(PfenError::InvalidColor(turn.to_string()));
+        return Err(PfenError::InvalidColor(turn));
     }
 
     let castling = sections[2];
     board.castling = Castling::from_str(castling)
-        .map_err(|_| PfenError::InvalidCastling(castling.to_string()))?;
+        .map_err(|_| PfenError::InvalidCastling(castling))?;
 
     let en_passant = sections[3];
     board.en_passant = parse_en_passant(en_passant)
-        .ok_or_else(|| PfenError::InvalidEnPassant(en_passant.to_string()))?;
+        .ok_or(PfenError::InvalidEnPassant(en_passant))?;
 
     let halfmove = sections[4];
     board.halfmove = halfmove
         .parse()
-        .map_err(|_| PfenError::InvalidHalfmove(halfmove.to_string()))?;
+        .map_err(|_| PfenError::InvalidHalfmove(halfmove))?;
 
     let fullmove = sections[5];
     board.fullmove = fullmove
         .parse()
-        .map_err(|_| PfenError::InvalidFullmove(fullmove.to_string()))?;
+        .map_err(|_| PfenError::InvalidFullmove(fullmove))?;
 
     let pieces = sections[0];
-    let mut rows = pieces.split('/');
 
     let mut ri = 0;
-    while let Some(row) = rows.next() {
+    for row in pieces.split('/') {
         if ri > 8 {
-            return Err(PfenError::TooManyRows(pieces.to_string()));
+            return Err(PfenError::TooManyRows(pieces));
         }
 
         let mut len = 0;
@@ -298,7 +299,7 @@ pub fn parse(fen: &str) -> Result<Pfen, PfenError> {
                     '7' => 7,
                     '8' => 8,
 
-                    _ => return Err(PfenError::RowTooLong(row.to_string())),
+                    _ => return Err(PfenError::RowTooLong(row)),
                 };
 
                 len += num;
@@ -310,19 +311,19 @@ pub fn parse(fen: &str) -> Result<Pfen, PfenError> {
             }
 
             if len > 8 {
-                return Err(PfenError::RowTooLong(row.to_string()));
+                return Err(PfenError::RowTooLong(row));
             }
         }
 
         if len < 8 {
-            return Err(PfenError::RowTooShort(row.to_string()));
+            return Err(PfenError::RowTooShort(row));
         }
 
         ri += 1;
     }
 
     if ri < 7 {
-        return Err(PfenError::TooFewRows(pieces.to_string()));
+        return Err(PfenError::TooFewRows(pieces));
     }
 
     Ok(board)
