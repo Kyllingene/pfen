@@ -1,6 +1,8 @@
-use std::str::FromStr;
+#![cfg_attr(not(test), no_std)]
 
-use thiserror::Error;
+use core::str::FromStr;
+
+use thiserror_no_std::Error;
 
 #[cfg(test)]
 mod test;
@@ -122,7 +124,7 @@ pub enum Color {
     White,
 }
 
-impl std::ops::Not for Color {
+impl core::ops::Not for Color {
     type Output = Self;
 
     fn not(self) -> Self::Output {
@@ -239,16 +241,12 @@ pub struct Pfen {
 pub fn parse(fen: &str) -> Result<Pfen, PfenError> {
     let mut board = Pfen::default();
 
-    let sections: Vec<_> = fen.split(' ').collect();
+    let mut sections = fen.split(' ');
+    let too_few = PfenError::TooFewSegments;
 
-    #[allow(clippy::comparison_chain)]
-    if sections.len() < 6 {
-        return Err(PfenError::TooFewSegments(sections.len()));
-    } else if sections.len() > 6 {
-        return Err(PfenError::TooManySegments(sections.len()));
-    }
+    let pieces = sections.next().ok_or(too_few(0))?;
 
-    let turn = sections[1];
+    let turn = sections.next().ok_or(too_few(1))?;
     if turn.len() == 1 {
         board.turn = turn
             .chars()
@@ -260,25 +258,23 @@ pub fn parse(fen: &str) -> Result<Pfen, PfenError> {
         return Err(PfenError::InvalidColor(turn));
     }
 
-    let castling = sections[2];
+    let castling = sections.next().ok_or(too_few(2))?;
     board.castling = Castling::from_str(castling)
         .map_err(|_| PfenError::InvalidCastling(castling))?;
 
-    let en_passant = sections[3];
+    let en_passant = sections.next().ok_or(too_few(3))?;
     board.en_passant = parse_en_passant(en_passant)
         .ok_or(PfenError::InvalidEnPassant(en_passant))?;
 
-    let halfmove = sections[4];
+    let halfmove = sections.next().ok_or(too_few(4))?;
     board.halfmove = halfmove
         .parse()
         .map_err(|_| PfenError::InvalidHalfmove(halfmove))?;
 
-    let fullmove = sections[5];
+    let fullmove = sections.next().ok_or(too_few(5))?;
     board.fullmove = fullmove
         .parse()
         .map_err(|_| PfenError::InvalidFullmove(fullmove))?;
-
-    let pieces = sections[0];
 
     let mut ri = 0;
     for row in pieces.split('/') {
@@ -326,5 +322,9 @@ pub fn parse(fen: &str) -> Result<Pfen, PfenError> {
         return Err(PfenError::TooFewRows(pieces));
     }
 
-    Ok(board)
+    if sections.next().is_some() {
+        Err(PfenError::TooManySegments(9 + sections.count()))
+    } else {
+        Ok(board)
+    }
 }

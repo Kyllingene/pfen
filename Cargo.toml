@@ -1,6 +1,6 @@
 [package]
 name = "pfen"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 
 description = "A fen parsing library."
@@ -9,7 +9,7 @@ license = "MIT"
 repository = "https://github.com/Kyllingene/pfen"
 
 [dependencies]
-thiserror = "1.0.50"
+thiserror-no-std = "2.0.2"
 
 [dev-dependencies]
 pretty_assertions = "1"
